@@ -1,0 +1,5 @@
+﻿  glfwsetup.cpp
+D:\[GDGRAP1] S.A.Cao\glfwsetup\glfwsetup.cpp(7,33): warning C4305: '*=': truncation from 'double' to 'float'
+D:\[GDGRAP1] S.A.Cao\glfwsetup\glfwsetup.cpp(36,47): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+D:\[GDGRAP1] S.A.Cao\glfwsetup\glfwsetup.cpp(36,29): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+  glfwsetup.vcxproj -> D:\[GDGRAP1] S.A.Cao\glfwsetup\x64\Debug\glfwsetup.exe
