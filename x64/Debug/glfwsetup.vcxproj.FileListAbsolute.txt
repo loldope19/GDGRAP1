@@ -1,1 +1,2 @@
 D:\[GDGRAP1] S.A.Cao\glfwsetup\x64\Debug\glfwsetup.exe
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\x64\Debug\glfwsetup.exe
