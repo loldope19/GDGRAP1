@@ -12,6 +12,9 @@
 #include <string>
 #include <iostream>
 
+float height = 600.f;
+float width = 600.f;
+
 float x_mod = 0;
 float y_mod = 0;
 float theta_mod = 0;
@@ -60,7 +63,7 @@ int main(void)
 {
     GLFWwindow* window;
 
-    float x = 0, y = 0, z = 0;
+    float x = 0, y = 0, z = -25;
     float scale_x = 2, scale_y = 2, scale_z = 1;
     float axis_x = 1, axis_y = 1, axis_z = 2;
     float theta = 90;
@@ -70,7 +73,7 @@ int main(void)
         return -1;
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(600, 600, "Sydrenz Cao", NULL, NULL);
+    window = glfwCreateWindow(width, height, "Sydrenz Cao", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -80,6 +83,8 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
     gladLoadGL();
+
+    glViewport(0, 0, width, height);
 
     glfwSetKeyCallback(window, Key_Callback);
 
@@ -185,8 +190,16 @@ int main(void)
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glm::mat4 projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -1.f, 1.0f);
+    // Orthographic projection
+    //glm::mat4 projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -1.f, 1.0f);
                                     //left, right, bottom, up,  near, far
+
+    glm::mat4 projection = glm::perspective(
+        glm::radians(60.f), // FOV
+        height / width,   // Aspect Ratio
+        0.1f,   // Near
+        100.f   // Far
+    );
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))

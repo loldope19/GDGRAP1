@@ -1,3 +1,7 @@
 ﻿  glfwsetup.cpp
-D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(224,9): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(76,38): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(76,31): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(87,29): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(87,22): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(237,9): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
   glfwsetup.vcxproj -> D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\x64\Debug\glfwsetup.exe
