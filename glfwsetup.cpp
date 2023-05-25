@@ -15,6 +15,11 @@
 float height = 600.f;
 float width = 600.f;
 
+float x = 0, y = 0, z = -25;
+float scale_x = 2, scale_y = 2, scale_z = 1;
+float axis_x = 1, axis_y = 1, axis_z = 1;
+float theta = 90;
+
 float x_mod = 0;
 float y_mod = 0;
 float scale_mod = 0;
@@ -51,12 +56,12 @@ void Key_Callback(
 
     if (key == GLFW_KEY_Q &&
         action == GLFW_PRESS) {
-        scale_mod -= 5.0f;
+        scale_mod -= 2.0f;
     }
 
     if (key == GLFW_KEY_E &&
         action == GLFW_PRESS) {
-        scale_mod += 5.0f;
+        scale_mod += 2.0f;
     }
 
     if (key == GLFW_KEY_Q &&
@@ -68,11 +73,6 @@ void Key_Callback(
 int main(void) 
 {
     GLFWwindow* window;
-
-    float x = 0, y = 0, z = -25;
-    float scale_x = 2, scale_y = 2, scale_z = 1;
-    float axis_x = 1, axis_y = 1, axis_z = 2;
-    float theta = 90;
 
     /* Initialize the library */
     if (!glfwInit())
