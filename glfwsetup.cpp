@@ -5,11 +5,18 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <string>
 #include <iostream>
 
 float x_mod = 0;
 float y_mod = 0;
+float theta_mod = 0;
+
+glm::mat4 identity_matrix = glm::mat4(1.0f);
 
 void Key_Callback(
     GLFWwindow* window,
@@ -18,30 +25,45 @@ void Key_Callback(
     int action,
     int mod
 ) {
-    if (key == GLFW_KEY_D &&
+    if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT &&
         action == GLFW_PRESS) {
         x_mod += 0.1f;
     }
 
-    if (key == GLFW_KEY_A &&
+    if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT &&
         action == GLFW_PRESS) {
         x_mod -= 0.1f;
     }
 
-    if (key == GLFW_KEY_W &&
+    if (key == GLFW_KEY_W || key == GLFW_KEY_UP &&
         action == GLFW_PRESS) {
         y_mod += 0.1f;
     }
 
-    if (key == GLFW_KEY_S &&
+    if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN &&
         action == GLFW_PRESS) {
         y_mod -= 0.1f;
+    }
+
+    if (key == GLFW_KEY_Q &&
+        action == GLFW_PRESS) {
+        theta_mod += 5.0f;
+    }
+
+    if (key == GLFW_KEY_E &&
+        action == GLFW_PRESS) {
+        theta_mod += 5.0f;
     }
 }
 
 int main(void) 
 {
     GLFWwindow* window;
+
+    float x = 0, y = 0, z = 0;
+    float scale_x = 2, scale_y = 2, scale_z = 1;
+    float axis_x = 1, axis_y = 1, axis_z = 2;
+    float theta = 90;
 
     /* Initialize the library */
     if (!glfwInit())
@@ -163,6 +185,8 @@ int main(void)
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    glm::mat4 projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -1.f, 1.0f);
+                                    //left, right, bottom, up,  near, far
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -170,11 +194,23 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        unsigned int xLoc = glGetUniformLocation(shaderProgram, "x");
-        glUniform1f(xLoc, x_mod);
+        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x + x_mod, y + y_mod, z));
+        transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x, scale_y, scale_z));
+        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta += theta_mod), glm::normalize(glm::vec3(axis_x, axis_y, axis_z)));
 
-        unsigned int yLoc = glGetUniformLocation(shaderProgram, "y");
-        glUniform1f(yLoc, y_mod);
+        unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+        glUniformMatrix4fv(transformLoc,    // Address of the transform variable
+            1,                              // How many matrices to assign
+            GL_FALSE,                       // Transpose?
+            glm::value_ptr(transformation_matrix));     // Pointer to the matrix
+
+
+
+        unsigned int projLoc = glGetUniformLocation(shaderProgram, "projection");
+        glUniformMatrix4fv(projLoc,    // Address of the transform variable
+            1,                              // How many matrices to assign
+            GL_FALSE,                       // Transpose?
+            glm::value_ptr(projection));     // Pointer to the matrix
 
         glUseProgram(shaderProgram);
 
