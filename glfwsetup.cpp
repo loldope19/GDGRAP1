@@ -17,6 +17,7 @@ float width = 600.f;
 
 float x_mod = 0;
 float y_mod = 0;
+float scale_mod = 0;
 float theta_mod = 0;
 
 glm::mat4 identity_matrix = glm::mat4(1.0f);
@@ -28,34 +29,39 @@ void Key_Callback(
     int action,
     int mod
 ) {
-    if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT &&
+    if (key == GLFW_KEY_D &&
         action == GLFW_PRESS) {
         x_mod += 0.1f;
     }
 
-    if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT &&
+    if (key == GLFW_KEY_A &&
         action == GLFW_PRESS) {
         x_mod -= 0.1f;
     }
 
-    if (key == GLFW_KEY_W || key == GLFW_KEY_UP &&
+    if (key == GLFW_KEY_W &&
         action == GLFW_PRESS) {
         y_mod += 0.1f;
     }
 
-    if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN &&
+    if (key == GLFW_KEY_S &&
         action == GLFW_PRESS) {
         y_mod -= 0.1f;
     }
 
     if (key == GLFW_KEY_Q &&
         action == GLFW_PRESS) {
-        theta_mod += 5.0f;
+        scale_mod -= 5.0f;
     }
 
     if (key == GLFW_KEY_E &&
         action == GLFW_PRESS) {
-        theta_mod += 5.0f;
+        scale_mod += 5.0f;
+    }
+
+    if (key == GLFW_KEY_Q &&
+        action == GLFW_PRESS) {
+
     }
 }
 
@@ -208,8 +214,8 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x + x_mod, y + y_mod, z));
-        transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x, scale_y, scale_z));
-        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta += theta_mod), glm::normalize(glm::vec3(axis_x, axis_y, axis_z)));
+        transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z));
+        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta), glm::normalize(glm::vec3(axis_x, axis_y, axis_z)));
 
         unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
         glUniformMatrix4fv(transformLoc,    // Address of the transform variable
