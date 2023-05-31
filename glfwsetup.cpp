@@ -15,15 +15,17 @@
 float height = 600.f;
 float width = 600.f;
 
-float x = 0, y = 0, z = -25;
+float x = 0, y = 0, z = -5.0f;
 float scale_x = 2, scale_y = 2, scale_z = 1;
-float axis_x = 1, axis_y = 1, axis_z = 1;
-float theta = 90;
+float axis_x = -1.0f, axis_y = 1.0f, axis_z = 1.0f;
+float theta = 0;
 
 float x_mod = 0;
 float y_mod = 0;
 float scale_mod = 0;
+float axis_xmod = 0, axis_ymod = 0;
 float theta_mod = 0;
+float zoom_mod = 0;
 
 glm::mat4 identity_matrix = glm::mat4(1.0f);
 
@@ -36,37 +38,66 @@ void Key_Callback(
 ) {
     if (key == GLFW_KEY_D &&
         action == GLFW_PRESS) {
-        x_mod += 0.1f;
+        x_mod += 0.1f;              // Movement (X-Axis)
     }
 
     if (key == GLFW_KEY_A &&
         action == GLFW_PRESS) {
-        x_mod -= 0.1f;
+        x_mod -= 0.1f;              // Movement (X-Axis)
     }
 
     if (key == GLFW_KEY_W &&
         action == GLFW_PRESS) {
-        y_mod += 0.1f;
+        y_mod += 0.1f;              // Movement (Y-Axis)
     }
 
     if (key == GLFW_KEY_S &&
         action == GLFW_PRESS) {
-        y_mod -= 0.1f;
+        y_mod -= 0.1f;              // Movement (Y-Axis)
+    }
+
+    if (key == GLFW_KEY_UP &&
+        action == GLFW_PRESS) {
+        axis_xmod += 1.0f;
+        std::cout << axis_x + axis_xmod << std::endl;
+    }
+
+    if (key == GLFW_KEY_DOWN &&
+        action == GLFW_PRESS) {
+        axis_xmod -= 1.0f;
+        std::cout << axis_x + axis_xmod << std::endl;
+    }
+
+    if (key == GLFW_KEY_LEFT &&
+        action == GLFW_PRESS) {
+        axis_ymod += 1.0f;
+        std::cout << axis_y + axis_ymod << std::endl;
+    }
+
+    if (key == GLFW_KEY_RIGHT &&
+        action == GLFW_PRESS) {
+        axis_ymod -= 1.0f;
+        std::cout << axis_y + axis_ymod << std::endl;
     }
 
     if (key == GLFW_KEY_Q &&
         action == GLFW_PRESS) {
-        scale_mod -= 2.0f;
+        scale_mod += 2.0f;          // Increase Scale
     }
 
     if (key == GLFW_KEY_E &&
         action == GLFW_PRESS) {
-        scale_mod += 2.0f;
+        scale_mod -= 2.0f;          // Decrease Scale
     }
 
-    if (key == GLFW_KEY_Q &&
+    if (key == GLFW_KEY_Z &&
         action == GLFW_PRESS) {
+        zoom_mod += 1.0f;          // Zoom In
+    }
 
+    if (key == GLFW_KEY_X &&
+        action == GLFW_PRESS) {
+        zoom_mod -= 1.0f;          // Zoom Out
     }
 }
 
@@ -204,7 +235,7 @@ int main(void)
         glm::radians(60.f), // FOV
         height / width,   // Aspect Ratio
         0.1f,   // Near
-        100.f   // Far
+        100.0f   // Far
     );
 
     /* Loop until the user closes the window */
@@ -213,9 +244,11 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x + x_mod, y + y_mod, z));
-        transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z));
-        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta), glm::normalize(glm::vec3(axis_x, axis_y, axis_z)));
+        
+
+        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x + x_mod, y + y_mod, z + zoom_mod));
+        transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z + scale_mod));
+        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta + theta_mod), glm::normalize(glm::vec3(axis_x, axis_y, axis_z)));
 
         unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
         glUniformMatrix4fv(transformLoc,    // Address of the transform variable
