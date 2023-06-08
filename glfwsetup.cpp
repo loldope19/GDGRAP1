@@ -15,8 +15,8 @@
 float height = 600.f;
 float width = 600.f;
 
-float x = 0, y = 1, z = -5.0f;
-float scale_x = 10.f, scale_y = 10.f, scale_z = 10.f;
+float x = 0, y = 0, z = 0;
+float scale_x = 10.0f, scale_y = 10.0f, scale_z = 10.0f;
 float axis_x = 1.0f, axis_y = 1.0f, axis_z = 0.0f;
 
 float x_mod = 0;
@@ -36,22 +36,22 @@ void Key_Callback(
 ) {
     if (key == GLFW_KEY_D &&
         action == GLFW_PRESS) {
-        x_mod += 0.1f;              // Movement (X-Axis)
+        x_mod += 1.0f;              // Movement (X-Axis)
     }
 
     if (key == GLFW_KEY_A &&
         action == GLFW_PRESS) {
-        x_mod -= 0.1f;              // Movement (X-Axis)
+        x_mod -= 1.0f;              // Movement (X-Axis)
     }
 
     if (key == GLFW_KEY_W &&
         action == GLFW_PRESS) {
-        y_mod += 0.1f;              // Movement (Y-Axis)
+        y_mod += 1.0f;              // Movement (Y-Axis)
     }
 
     if (key == GLFW_KEY_S &&
         action == GLFW_PRESS) {
-        y_mod -= 0.1f;              // Movement (Y-Axis)
+        y_mod -= 1.0f;              // Movement (Y-Axis)
     }
 
     if (key == GLFW_KEY_UP &&
@@ -115,8 +115,6 @@ int main(void)
     glfwMakeContextCurrent(window);
     gladLoadGL();
 
-    glViewport(0, 0, width, height);
-
     glfwSetKeyCallback(window, Key_Callback);
 
     std::fstream vertSrc("Shaders/sample.vert");
@@ -160,6 +158,7 @@ int main(void)
         &error,
         path.c_str()
     );
+    GLint objColorLoc = glGetUniformLocation(shaderProgram, "objColor");
 
     std::vector<GLuint> mesh_indices;
     for (int i = 0; i < shapes[0].mesh.indices.size(); i++) {
@@ -221,71 +220,44 @@ int main(void)
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    // Orthographic projection
-    //glm::mat4 projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -1.f, 1.0f);
-                                    //left, right, bottom, up,  near, far
-
-    glm::mat4 projection = glm::perspective(
-        glm::radians(60.f), // FOV
-        height / width,   // Aspect Ratio
-        0.1f,   // Near
-        100.0f   // Far
-    );
-
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glm::vec3 cameraPos = glm::vec3(x_mod, 0, 10.f);
-        glm::mat4 cameraPosMatrix = glm::translate(
-            glm::mat4(1.0f),
-            cameraPos * -1.0f
-            );
-
-        glm::vec3 WorldUp = glm::vec3(0, 1.0f, 0);
-        glm::vec3 center = glm::vec3(x_mod, 3.0f, 0);
-
-        glm::vec3 F = glm::vec3(center - cameraPos);
-        glm::normalize(F);
-
-        glm::vec3 R = glm::cross(F, WorldUp);
-        glm::vec3 U = glm::cross(R, F);
-
-        glm::mat4 cameraOrientation = glm::mat4(1.0f);
-        cameraOrientation[0][0] = R.x;
-        cameraOrientation[1][0] = R.y;
-        cameraOrientation[2][0] = R.z;
-
-        cameraOrientation[0][1] = U.x;
-        cameraOrientation[1][1] = U.y;
-        cameraOrientation[2][1] = U.z;
-
-        cameraOrientation[0][2] = -F.x;
-        cameraOrientation[1][2] = -F.y;
-        cameraOrientation[2][2] = -F.z;
-
-        //glm::mat4 viewMatrix = cameraOrientation * cameraPosMatrix;
-        glm::mat4 viewMatrix = glm::lookAt(cameraPos, center, WorldUp);
-
-        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x /* + x_mod*/, y + y_mod, z + zoom_mod));
+        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x + x_mod, y + y_mod, z + zoom_mod));
         transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z + scale_mod));
         transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
         transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
 
+        glViewport(0, 300, width / 2, height / 2);
+        glUniform3f(objColorLoc, 1.0f, 0.0f, 0.0f);
+        glm::mat4 projection = glm::perspective(
+            glm::radians(60.f), // FOV
+            height / width,   // Aspect Ratio
+            0.1f,   // Near
+            50.0f   // Far
+        );
+       
+        glm::vec3 cameraPos = glm::vec3(0, 5.0f, -1.0f);    // Top View
+
+        glm::vec3 WorldUp = glm::vec3(0, 1.0f, 0);
+        glm::vec3 center = glm::vec3(0, 1.0f, 0);
+
+        glm::mat4 viewMatrix = glm::lookAt(cameraPos, center, WorldUp);
+
         unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
-        glUniformMatrix4fv(transformLoc,    // Address of the transform variable
-            1,                              // How many matrices to assign
-            GL_FALSE,                       // Transpose?
+        glUniformMatrix4fv(transformLoc,                // Address of the transform variable
+            1,                                          // How many matrices to assign
+            GL_FALSE,                                   // Transpose?
             glm::value_ptr(transformation_matrix));     // Pointer to the matrix
 
         unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
         glUniformMatrix4fv(viewLoc,
             1,
             GL_FALSE,
-            glm::value_ptr(viewMatrix)
-        );
+            glm::value_ptr(viewMatrix));
 
         unsigned int projLoc = glGetUniformLocation(shaderProgram, "projection");
         glUniformMatrix4fv(projLoc,    // Address of the transform variable
@@ -296,13 +268,95 @@ int main(void)
         glUseProgram(shaderProgram);
 
         glBindVertexArray(VAO);
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
         glDrawElements(
             GL_TRIANGLES,
             mesh_indices.size(),
             GL_UNSIGNED_INT,
             0
         );
+        
+        glViewport(300, 300, width / 2, height / 2);
+        glUniform3f(objColorLoc, 0.0f, 1.0f, 0.0f);
+        glm::mat4 projection2 = glm::perspective(
+            glm::radians(60.f), // FOV
+            height / width,   // Aspect Ratio
+            0.1f,   // Near
+            50.0f   // Far
+        );
+
+        glm::vec3 cameraPos2 = glm::vec3(-5.0f, 0, 0.0f); // Front View
+        glm::mat4 viewMatrix2 = glm::lookAt(cameraPos2, center, WorldUp);
+        unsigned int transformLoc2 = glGetUniformLocation(shaderProgram, "transform");
+        glUniformMatrix4fv(transformLoc2,                // Address of the transform variable
+            1,                                          // How many matrices to assign
+            GL_FALSE,                                   // Transpose?
+            glm::value_ptr(transformation_matrix));     // Pointer to the matrix
+
+        unsigned int viewLoc2 = glGetUniformLocation(shaderProgram, "view");
+        glUniformMatrix4fv(viewLoc2,
+            1,
+            GL_FALSE,
+            glm::value_ptr(viewMatrix2));
+
+        unsigned int projLoc2 = glGetUniformLocation(shaderProgram, "projection");
+        glUniformMatrix4fv(projLoc2,    // Address of the transform variable
+            1,                              // How many matrices to assign
+            GL_FALSE,                       // Transpose?
+            glm::value_ptr(projection2));     // Pointer to the matrix
+
+        glUseProgram(shaderProgram);
+
+        glBindVertexArray(VAO);
+        glDrawElements(
+            GL_TRIANGLES,
+            mesh_indices.size(),
+            GL_UNSIGNED_INT,
+            0
+        );
+
+        glViewport(150, 0, width / 2, height / 2);
+        glUniform3f(objColorLoc, 0.0f, 0.0f, 1.0f);
+        glm::mat4 projection3 = glm::perspective(
+            glm::radians(60.f), // FOV
+            height / width,   // Aspect Ratio
+            0.1f,   // Near
+            50.0f   // Far
+        );
+
+        glm::vec3 cameraPos3 = glm::vec3(0, 0, -5.0f);     // Side View
+        glm::mat4 viewMatrix3 = glm::lookAt(cameraPos3, center, WorldUp);
+
+        unsigned int transformLoc3 = glGetUniformLocation(shaderProgram, "transform");
+        glUniformMatrix4fv(transformLoc3,                // Address of the transform variable
+            1,                                          // How many matrices to assign
+            GL_FALSE,                                   // Transpose?
+            glm::value_ptr(transformation_matrix));     // Pointer to the matrix
+
+        unsigned int viewLoc3 = glGetUniformLocation(shaderProgram, "view");
+        glUniformMatrix4fv(viewLoc3,
+            1,
+            GL_FALSE,
+            glm::value_ptr(viewMatrix3));
+
+        unsigned int projLoc3 = glGetUniformLocation(shaderProgram, "projection");
+        glUniformMatrix4fv(projLoc3,    // Address of the transform variable
+            1,                              // How many matrices to assign
+            GL_FALSE,                       // Transpose?
+            glm::value_ptr(projection3));     // Pointer to the matrix
+
+
+
+        // ---------------------------- //
+        glUseProgram(shaderProgram);
+        
+        glBindVertexArray(VAO);
+        glDrawElements(
+            GL_TRIANGLES,
+            mesh_indices.size(),
+            GL_UNSIGNED_INT,
+            0
+        );
+        // ---------------------------- //
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
