@@ -8,6 +8,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "glfwsetup.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -18,17 +20,27 @@
 float height = 600.f;
 float width = 600.f;
 
-float x = 0, y = 0, z = 0;
-float scale_x = 1.0f, scale_y = 1.0f, scale_z = 1.0f;
-float axis_x = 1.0f, axis_y = 1.0f, axis_z = 0.0f;
-
-float x_mod = 0;
-float y_mod = 0;
-float scale_mod = 0;
-float theta_xmod = 0, theta_ymod = 0;
-float zoom_mod = 0;
-
 glm::mat4 identity_matrix = glm::mat4(1.0f);
+
+model3D::model3D(float x, float y, float z) {
+    this->x = x;
+    this->y = y;
+    this->z = z;
+
+    this->scale_x = this->scale_y = this->scale_z = 1.0f;
+    this->axis_x = this->axis_y = 1.f;
+    this->axis_z = 0.f;
+
+    this->x_mod = this->y_mod = 0.f;
+    this->scale_mod = 1.0f;
+    this->theta_xmod = this->theta_ymod = 0.f;
+    this->zoom_mod = 0.f;
+
+}
+
+float model3D::getVarByName(std::string name) {
+
+}
 
 void Key_Callback(
     GLFWwindow* window,
@@ -39,63 +51,67 @@ void Key_Callback(
 ) {
     if (key == GLFW_KEY_D &&
         action == GLFW_PRESS) {
-        x_mod += 1.0f;              // Movement (X-Axis)
+        this->x_mod += 1.0f;              // Movement (X-Axis)
     }
 
     if (key == GLFW_KEY_A &&
         action == GLFW_PRESS) {
-        x_mod -= 1.0f;              // Movement (X-Axis)
+        this->x_mod -= 1.0f;              // Movement (X-Axis)
     }
 
     if (key == GLFW_KEY_W &&
         action == GLFW_PRESS) {
-        y_mod += 1.0f;              // Movement (Y-Axis)
+        this->y_mod += 1.0f;              // Movement (Y-Axis)
     }
 
     if (key == GLFW_KEY_S &&
         action == GLFW_PRESS) {
-        y_mod -= 1.0f;              // Movement (Y-Axis)
+        this->y_mod -= 1.0f;              // Movement (Y-Axis)
     }
 
     if (key == GLFW_KEY_UP &&
         action == GLFW_PRESS) {
-        theta_xmod += 2.0f;         // Rotation (X-Axis)
+        this->theta_xmod += 2.0f;         // Rotation (X-Axis)
     }
 
     if (key == GLFW_KEY_DOWN &&
         action == GLFW_PRESS) {
-        theta_xmod -= 2.0f;         // Rotation (X-Axis)
+        this->theta_xmod -= 2.0f;         // Rotation (X-Axis)
     }
 
     if (key == GLFW_KEY_LEFT &&
         action == GLFW_PRESS) {
-        theta_ymod += 2.0f;         // Rotation (Y-Axis)
+        this->theta_ymod += 2.0f;         // Rotation (Y-Axis)
     }
 
     if (key == GLFW_KEY_RIGHT &&
         action == GLFW_PRESS) {
-        theta_ymod -= 2.0f;         // Rotation (Y-Axis)
+        this->theta_ymod -= 2.0f;         // Rotation (Y-Axis)
     }
 
     if (key == GLFW_KEY_Q &&
         action == GLFW_PRESS) {
-        scale_mod += 1.0f;          // Increase Scale
+        this->scale_mod += 1.0f;          // Increase Scale
     }
 
     if (key == GLFW_KEY_E &&
         action == GLFW_PRESS) {
-        scale_mod -= 1.0f;          // Decrease Scale
+        this->scale_mod -= 1.0f;          // Decrease Scale
     }
 
     if (key == GLFW_KEY_Z &&
         action == GLFW_PRESS) {
-        zoom_mod += 0.5f;          // Zoom In
+        this->zoom_mod += 0.5f;          // Zoom In
     }
 
     if (key == GLFW_KEY_X &&
         action == GLFW_PRESS) {
-        zoom_mod -= 0.5f;          // Zoom Out
+        this->zoom_mod -= 0.5f;          // Zoom Out
     }
+}
+
+void model3D::transform() {
+
 }
 
 int main(void) 
@@ -206,29 +222,18 @@ int main(void)
         &error,
         path.c_str()
     );
-    /*
-    GLfloat UV[]{       // UV Data
-        0.f, 1.f,
-        0.f, 0.f,
-        1.f, 1.f,
-        1.f, 0.f,
-        1.f, 1.f,
-        1.f, 0.f,
-        0.f, 1.f,
-        0.f, 0.f
-    };
-    */
 
     GLfloat UV[]{       // UV Data
-        0.f, 10.f,
+        0.f, 1.f,
         0.f, 0.f,
-        10.f, 10.f,
-        10.f, 0.f,
-        10.f, 10.f,
-        10.f, 0.f,
-        0.f, 10.f,
+        1.f, 1.f,
+        1.f, 0.f,
+        1.f, 1.f,
+        1.f, 0.f,
+        0.f, 1.f,
         0.f, 0.f
     };
+
 
 
     GLint objColorLoc = glGetUniformLocation(shaderProgram, "objColor");
@@ -366,87 +371,6 @@ int main(void)
             1,                              // How many matrices to assign
             GL_FALSE,                       // Transpose?
             glm::value_ptr(projection));     // Pointer to the matrix
-        /*
-        glUseProgram(shaderProgram);
-
-        glBindVertexArray(VAO);
-        glDrawElements(
-            GL_TRIANGLES,
-            mesh_indices.size(),
-            GL_UNSIGNED_INT,
-            0
-        );
-        
-        glViewport(300, 300, width / 2, height / 2);
-        glUniform3f(objColorLoc, 0.0f, 1.0f, 0.0f);
-        glm::mat4 projection2 = glm::perspective(
-            glm::radians(60.f), // FOV
-            height / width,   // Aspect Ratio
-            0.1f,   // Near
-            50.0f   // Far
-        );
-
-        glm::vec3 cameraPos2 = glm::vec3(-5.0f, 0, 0.0f); // Front View
-        glm::mat4 viewMatrix2 = glm::lookAt(cameraPos2, center, WorldUp);
-        unsigned int transformLoc2 = glGetUniformLocation(shaderProgram, "transform");
-        glUniformMatrix4fv(transformLoc2,                // Address of the transform variable
-            1,                                          // How many matrices to assign
-            GL_FALSE,                                   // Transpose?
-            glm::value_ptr(transformation_matrix));     // Pointer to the matrix
-
-        unsigned int viewLoc2 = glGetUniformLocation(shaderProgram, "view");
-        glUniformMatrix4fv(viewLoc2,
-            1,
-            GL_FALSE,
-            glm::value_ptr(viewMatrix2));
-
-        unsigned int projLoc2 = glGetUniformLocation(shaderProgram, "projection");
-        glUniformMatrix4fv(projLoc2,    // Address of the transform variable
-            1,                              // How many matrices to assign
-            GL_FALSE,                       // Transpose?
-            glm::value_ptr(projection2));     // Pointer to the matrix
-
-        glUseProgram(shaderProgram);
-
-        glBindVertexArray(VAO);
-        glDrawElements(
-            GL_TRIANGLES,
-            mesh_indices.size(),
-            GL_UNSIGNED_INT,
-            0
-        );
-
-        glViewport(150, 0, width / 2, height / 2);
-        glUniform3f(objColorLoc, 0.0f, 0.0f, 1.0f);
-        glm::mat4 projection3 = glm::perspective(
-            glm::radians(60.f), // FOV
-            height / width,   // Aspect Ratio
-            0.1f,   // Near
-            50.0f   // Far
-        );
-
-        glm::vec3 cameraPos3 = glm::vec3(0, 0, -5.0f);     // Side View
-        glm::mat4 viewMatrix3 = glm::lookAt(cameraPos3, center, WorldUp);
-
-        unsigned int transformLoc3 = glGetUniformLocation(shaderProgram, "transform");
-        glUniformMatrix4fv(transformLoc3,                // Address of the transform variable
-            1,                                          // How many matrices to assign
-            GL_FALSE,                                   // Transpose?
-            glm::value_ptr(transformation_matrix));     // Pointer to the matrix
-
-        unsigned int viewLoc3 = glGetUniformLocation(shaderProgram, "view");
-        glUniformMatrix4fv(viewLoc3,
-            1,
-            GL_FALSE,
-            glm::value_ptr(viewMatrix3));
-
-        unsigned int projLoc3 = glGetUniformLocation(shaderProgram, "projection");
-        glUniformMatrix4fv(projLoc3,    // Address of the transform variable
-            1,                              // How many matrices to assign
-            GL_FALSE,                       // Transpose?
-            glm::value_ptr(projection3));     // Pointer to the matrix
-
-        */
 
         // ---------------------------- //
         glUseProgram(shaderProgram);
