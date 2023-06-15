@@ -2,12 +2,7 @@
 
 float height = 600.f;
 float width = 600.f;
-float x_mod = 0.0f;
-float y_mod = 0.0f;
-float scale_mod = 1.0f;
-float theta_xmod = 0.0f;
-float theta_ymod = 0.0f;
-float zoom_mod = 0.0f;
+GLuint VAO, VBO, EBO, VBO_UV;
 
 glm::mat4 identity_matrix = glm::mat4(1.0f);
 
@@ -15,7 +10,6 @@ model3D::model3D(std::string filePath) {
     this->x = x;
     this->y = y;
     this->z = z;
-    this->VAO = this->VBO = this->EBO = this->VBO_UV = 0;
 
     this->scale_x = this->scale_y = this->scale_z = 1.0f;
     this->axis_x = this->axis_y = 1.f;
@@ -195,9 +189,9 @@ void createShaderProgram() {
     glAttachShader(shaderProgram, fragShader);
 
     glLinkProgram(shaderProgram);
-    GLint objColorLoc = glGetUniformLocation(shaderProgram, "objColor");
 }
 
+/*
 void Key_Callback(
     GLFWwindow* window,
     int key,        // Key Code
@@ -265,11 +259,19 @@ void Key_Callback(
         zoom_mod -= 0.5f;          // Zoom Out
     }
 }
+*/
+
+glm::mat4 getModelMatrix() {
+
+}
+
+
 
 int main(void) 
 {
     model3D myModel("3D/myCube.obj");
     GLFWwindow* window;
+    std::vector<glm::mat4> modelMatrices;
 
     /* Initialize the library */
     if (!glfwInit())
@@ -332,7 +334,7 @@ int main(void)
     // Enable Depth Testing
     glEnable(GL_DEPTH_TEST);
 
-    glfwSetKeyCallback(window, Key_Callback);
+    //glfwSetKeyCallback(window, Key_Callback);
 
     createShaderProgram();
     
@@ -387,8 +389,8 @@ int main(void)
         // Use the texture at 0
         glUniform1i(tex0Address, 0);
 
-        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x , y , z + zoom_mod));
-        transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z + scale_mod));
+        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x , y , z));
+        transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x, scale_y, scale_z));
         // transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod += y_mod), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
         // transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod += x_mod), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
        

@@ -25,7 +25,6 @@ class model3D {
 		float axis_x, axis_y, axis_z;
 
 	private:
-		GLuint VAO, VBO, EBO, VBO_UV;
 		std::vector<float> vertices;
 		std::vector<float> normals;
 		std::vector<float> texCoords;
