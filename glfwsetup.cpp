@@ -5,6 +5,9 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -16,7 +19,7 @@ float height = 600.f;
 float width = 600.f;
 
 float x = 0, y = 0, z = 0;
-float scale_x = 10.0f, scale_y = 10.0f, scale_z = 10.0f;
+float scale_x = 1.0f, scale_y = 1.0f, scale_z = 1.0f;
 float axis_x = 1.0f, axis_y = 1.0f, axis_z = 0.0f;
 
 float x_mod = 0;
@@ -115,6 +118,51 @@ int main(void)
     glfwMakeContextCurrent(window);
     gladLoadGL();
 
+    int img_width,      // Texture Width
+        img_height,     // Texture Height
+        colorChannels;  // No. of Color Channels
+
+    // Fix the flipped texture
+    stbi_set_flip_vertically_on_load(true);
+
+    // Loads the texture and fills out the variables
+    unsigned char* tex_bytes =
+        stbi_load("3d/ayaya.png",   // Texture Path
+            &img_width,             // Fills out the width
+            &img_height,            // Fills out the height
+            &colorChannels,         // Fills out the color channel
+            0);
+
+    // OpenGL reference to the texture
+    GLuint texture;
+
+    // Generate a reference
+    glGenTextures(1, &texture);
+    // Set the current texture were working on to Texture 0
+    glActiveTexture(GL_TEXTURE0);
+    // Bind our next tasks to Tex0 to our current reference similar to what we're doing to VBOs
+    glBindTexture(GL_TEXTURE_2D, texture);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+    // Assign the loaded texture to the OpenGL reference
+    glTexImage2D(GL_TEXTURE_2D,     
+        0,                          // Texture 0
+        GL_RGBA,                    // Target color format of the texture
+        img_width,                  // Texture width
+        img_height,                 // Texture height
+        0,
+        GL_RGBA,                    // Color format of the texture
+        GL_UNSIGNED_BYTE,
+        tex_bytes);                 // Loaded texture in bytes
+
+    // Generate the mipmaps to the current textures
+    glGenerateMipmap(GL_TEXTURE_2D);
+    // Free up the loaded bytes
+    stbi_image_free(tex_bytes);
+
+    // Enable Depth Testing
+    glEnable(GL_DEPTH_TEST);
+
     glfwSetKeyCallback(window, Key_Callback);
 
     std::fstream vertSrc("Shaders/sample.vert");
@@ -143,7 +191,7 @@ int main(void)
 
     glLinkProgram(shaderProgram);
 
-    std::string path = "3D/bunny.obj";
+    std::string path = "3D/myCube.obj";
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> material;
     std::string warning, error;
@@ -158,6 +206,31 @@ int main(void)
         &error,
         path.c_str()
     );
+    /*
+    GLfloat UV[]{       // UV Data
+        0.f, 1.f,
+        0.f, 0.f,
+        1.f, 1.f,
+        1.f, 0.f,
+        1.f, 1.f,
+        1.f, 0.f,
+        0.f, 1.f,
+        0.f, 0.f
+    };
+    */
+
+    GLfloat UV[]{       // UV Data
+        0.f, 10.f,
+        0.f, 0.f,
+        10.f, 10.f,
+        10.f, 0.f,
+        10.f, 10.f,
+        10.f, 0.f,
+        0.f, 10.f,
+        0.f, 0.f
+    };
+
+
     GLint objColorLoc = glGetUniformLocation(shaderProgram, "objColor");
 
     std::vector<GLuint> mesh_indices;
@@ -196,9 +269,10 @@ int main(void)
         0, 1, 2
     };
 
-    GLuint VAO, VBO, EBO;
+    GLuint VAO, VBO, EBO, VBO_UV;
     glGenVertexArrays(1, &VAO);     // Generates 1 VAO and outputs GLuint
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &VBO_UV);
     glGenBuffers(1, &EBO);
 
     // Tells OpenGL we're working on this VAO
@@ -233,32 +307,60 @@ int main(void)
         GL_STATIC_DRAW
     );
 
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_UV);      // Bind the UV buffer
+    glBufferData(GL_ARRAY_BUFFER,
+        sizeof(GLfloat) * (sizeof(UV) / sizeof(UV[0])),     // Float * size of the UV array
+        &UV[0],             // The UV array earlier
+        GL_DYNAMIC_DRAW);
+
+    // Add in how to interpret the array
+    glVertexAttribPointer(
+        2,                      // 2 for UV or tex coords
+        2,                      // UV
+        GL_FLOAT,               // Type of Array
+        GL_FALSE,
+        2 * sizeof(float),      // Every 2 index
+        (void*)0
+    );
+
+    // Enable 2 for our UV / Tex coords
+    glEnableVertexAttribArray(2);
+
     // Tells OpenGL we're done w/ VBO and VAO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    
+
+    glViewport(0, 0, width, height);
+    //glUniform3f(objColorLoc, 0.5f, 0.1f, 0.1f);
+    glm::mat4 projection = glm::perspective(
+        glm::radians(60.f), // FOV
+        height / width,   // Aspect Ratio
+        0.1f,   // Near
+        50.0f   // Far
+    );
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x + x_mod, y + y_mod, z + zoom_mod));
+        // Get the location of tex 0 in the fragment shader
+        GLuint tex0Address = glGetUniformLocation(shaderProgram, "tex0");
+        // Tell OpenGL to use the texture
+        glBindTexture(GL_TEXTURE_2D, texture);
+        // Use the texture at 0
+        glUniform1i(tex0Address, 0);
+
+        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x , y , z + zoom_mod));
         transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z + scale_mod));
-        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
-        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
-
-        glViewport(0, 300, width / 2, height / 2);
-        glUniform3f(objColorLoc, 1.0f, 0.0f, 0.0f);
-        glm::mat4 projection = glm::perspective(
-            glm::radians(60.f), // FOV
-            height / width,   // Aspect Ratio
-            0.1f,   // Near
-            50.0f   // Far
-        );
+        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod += y_mod), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
+        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod += x_mod), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
        
-        glm::vec3 cameraPos = glm::vec3(0, 5.0f, -1.0f);    // Top View
+        glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -5.0f);    // Top View
 
         glm::vec3 WorldUp = glm::vec3(0, 1.0f, 0);
         glm::vec3 center = glm::vec3(0, 1.0f, 0);
@@ -282,7 +384,7 @@ int main(void)
             1,                              // How many matrices to assign
             GL_FALSE,                       // Transpose?
             glm::value_ptr(projection));     // Pointer to the matrix
-
+        /*
         glUseProgram(shaderProgram);
 
         glBindVertexArray(VAO);
@@ -362,7 +464,7 @@ int main(void)
             GL_FALSE,                       // Transpose?
             glm::value_ptr(projection3));     // Pointer to the matrix
 
-
+        */
 
         // ---------------------------- //
         glUseProgram(shaderProgram);
@@ -375,7 +477,7 @@ int main(void)
             0
         );
         // ---------------------------- //
-
+        
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
