@@ -1,45 +1,201 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <math.h>
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "tiny_obj_loader.h"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include "glfwsetup.h"
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <string>
-#include <iostream>
 
 float height = 600.f;
 float width = 600.f;
+float x_mod = 0.0f;
+float y_mod = 0.0f;
+float scale_mod = 1.0f;
+float theta_xmod = 0.0f;
+float theta_ymod = 0.0f;
+float zoom_mod = 0.0f;
 
 glm::mat4 identity_matrix = glm::mat4(1.0f);
 
-model3D::model3D(float x, float y, float z) {
+model3D::model3D(std::string filePath) {
     this->x = x;
     this->y = y;
     this->z = z;
+    this->VAO = this->VBO = this->EBO = this->VBO_UV = 0;
 
     this->scale_x = this->scale_y = this->scale_z = 1.0f;
     this->axis_x = this->axis_y = 1.f;
     this->axis_z = 0.f;
 
-    this->x_mod = this->y_mod = 0.f;
-    this->scale_mod = 1.0f;
-    this->theta_xmod = this->theta_ymod = 0.f;
-    this->zoom_mod = 0.f;
+    loadModel(filePath);
+}
+
+model3D::~model3D() {
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO);
+}
+
+void model3D::loadModel(std::string& filePath) {
+    std::ifstream fObj(filePath);
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> material;
+    std::string warning, error;
+
+    tinyobj::attrib_t attributes;
+
+    bool success = tinyobj::LoadObj(
+        &attributes,
+        &shapes,
+        &material,
+        &warning,
+        &error,
+        filePath.c_str()
+    );
+
+    if (!fObj.is_open()) {
+        std::cout << "Failed to open file: " << filePath << std::endl;
+        return;
+    }
+
+    std::string line;
+
+    while (std::getline(fObj, line)) {
+        std::istringstream sStream(line);
+        std::string sDataType;
+        sStream >> sDataType;
+
+        if (sDataType == "v") {
+            // Processes vertex position data
+            float x, y, z;
+            sStream >> x >> y >> z;
+            this->vertices.push_back(x);
+            this->vertices.push_back(y);
+            this->vertices.push_back(z);
+        }
+        else if (sDataType == "vn") {
+            // Processes vertex normal data
+            float nx, ny, nz;
+            sStream >> nx >> ny >> nz;
+            this->normals.push_back(nx);
+            this->normals.push_back(ny);
+            this->normals.push_back(nz);
+        }
+        else if (sDataType == "vt") {
+            // Processes texture coordinate data
+            float u, v;
+            sStream >> u >> v;
+            this->texCoords.push_back(u);
+            this->texCoords.push_back(v);
+        }
+        else if (sDataType == "f") {
+            // Processes face indices data
+            unsigned int v1, v2, v3;
+            unsigned int vn1, vn2, vn3;
+            unsigned int vt1, vt2, vt3;
+            char slash;
+            sStream >> v1 >> slash >> vt1 >> slash >> vn1
+                    >> v2 >> slash >> vt2 >> slash >> vn2
+                    >> v3 >> slash >> vt3 >> slash >> vn3;
+            indices.push_back(v1 - 1);
+            indices.push_back(v2 - 1);
+            indices.push_back(v3 - 1);
+        }
+    }
+
+    fObj.close();
+
+    std::vector<GLuint> mesh_indices;
+    for (int i = 0; i < shapes[0].mesh.indices.size(); i++) {
+        mesh_indices.push_back(
+            shapes[0].mesh.indices[i].vertex_index
+        );
+    }
+
+    glGenVertexArrays(1, &this->VAO);     // Generates 1 VAO and outputs GLuint
+    glGenBuffers(1, &this->VBO);
+    glGenBuffers(1, &this->VBO_UV);
+    glGenBuffers(1, &this->EBO);
+
+    glBindVertexArray(this->VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+    glBufferData(
+        GL_ARRAY_BUFFER,    // Type of Buffer
+        sizeof(GL_FLOAT) * attributes.vertices.size(),   // Size in bytes
+        &attributes.vertices[0],           // Array itself
+        GL_STATIC_DRAW      // Static (for now, GL_DYNAMIC_ARRAY if moving)
+    );
+
+    glVertexAttribPointer(
+        0,          // 0 == Position
+        3,          // XYZ
+        GL_FLOAT,    // what array it is
+        GL_FALSE,
+        3 * sizeof(GL_FLOAT),
+        (void*)0
+    );
+
+    // Enables Index 0
+    glEnableVertexAttribArray(0);
+
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        sizeof(GLuint) * mesh_indices.size(),
+        mesh_indices.data(),
+        GL_STATIC_DRAW
+    );
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_UV);      // Bind the UV buffer
+    glBufferData(GL_ARRAY_BUFFER,
+        sizeof(GLfloat) * (sizeof(UV) / sizeof(UV[0])),     // Float * size of the UV array
+        &UV[0],             // The UV array earlier
+        GL_DYNAMIC_DRAW);
+
+    // Add in how to interpret the array
+    glVertexAttribPointer(
+        2,                      // 2 for UV or tex coords
+        2,                      // UV
+        GL_FLOAT,               // Type of Array
+        GL_FALSE,
+        2 * sizeof(float),      // Every 2 index
+        (void*)0
+    );
+
+    // Enable 2 for our UV / Tex coords
+    glEnableVertexAttribArray(2);
+
+    // Tells OpenGL we're done w/ VBO and VAO
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 
 }
 
-float model3D::getVarByName(std::string name) {
+void createShaderProgram() {
 
+    std::fstream vertSrc("Shaders/sample.vert");
+    std::stringstream vertBuff;
+    vertBuff << vertSrc.rdbuf();
+    std::string vertS = vertBuff.str();
+    const char* v = vertS.c_str();
+
+    std::fstream fragSrc("Shaders/sample.frag");
+    std::stringstream fragBuff;
+    fragBuff << fragSrc.rdbuf();
+    std::string fragS = fragBuff.str();
+    const char* f = fragS.c_str();
+
+    GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertShader, 1, &v, NULL);
+    glCompileShader(vertShader);
+
+    GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragShader, 1, &f, NULL);
+    glCompileShader(fragShader);
+
+    GLuint shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertShader);
+    glAttachShader(shaderProgram, fragShader);
+
+    glLinkProgram(shaderProgram);
+    GLint objColorLoc = glGetUniformLocation(shaderProgram, "objColor");
 }
 
 void Key_Callback(
@@ -51,71 +207,68 @@ void Key_Callback(
 ) {
     if (key == GLFW_KEY_D &&
         action == GLFW_PRESS) {
-        this->x_mod += 1.0f;              // Movement (X-Axis)
+        x_mod += 1.0f;              // Movement (X-Axis)
     }
 
     if (key == GLFW_KEY_A &&
         action == GLFW_PRESS) {
-        this->x_mod -= 1.0f;              // Movement (X-Axis)
+        x_mod -= 1.0f;              // Movement (X-Axis)
     }
 
     if (key == GLFW_KEY_W &&
         action == GLFW_PRESS) {
-        this->y_mod += 1.0f;              // Movement (Y-Axis)
+        y_mod += 1.0f;              // Movement (Y-Axis)
     }
 
     if (key == GLFW_KEY_S &&
         action == GLFW_PRESS) {
-        this->y_mod -= 1.0f;              // Movement (Y-Axis)
+        y_mod -= 1.0f;              // Movement (Y-Axis)
     }
 
     if (key == GLFW_KEY_UP &&
         action == GLFW_PRESS) {
-        this->theta_xmod += 2.0f;         // Rotation (X-Axis)
+        theta_xmod += 2.0f;         // Rotation (X-Axis)
     }
 
     if (key == GLFW_KEY_DOWN &&
         action == GLFW_PRESS) {
-        this->theta_xmod -= 2.0f;         // Rotation (X-Axis)
+        theta_xmod -= 2.0f;         // Rotation (X-Axis)
     }
 
     if (key == GLFW_KEY_LEFT &&
         action == GLFW_PRESS) {
-        this->theta_ymod += 2.0f;         // Rotation (Y-Axis)
+        theta_ymod += 2.0f;         // Rotation (Y-Axis)
     }
 
     if (key == GLFW_KEY_RIGHT &&
         action == GLFW_PRESS) {
-        this->theta_ymod -= 2.0f;         // Rotation (Y-Axis)
+        theta_ymod -= 2.0f;         // Rotation (Y-Axis)
     }
 
     if (key == GLFW_KEY_Q &&
         action == GLFW_PRESS) {
-        this->scale_mod += 1.0f;          // Increase Scale
+        scale_mod += 1.0f;          // Increase Scale
     }
 
     if (key == GLFW_KEY_E &&
         action == GLFW_PRESS) {
-        this->scale_mod -= 1.0f;          // Decrease Scale
+        scale_mod -= 1.0f;          // Decrease Scale
     }
 
     if (key == GLFW_KEY_Z &&
         action == GLFW_PRESS) {
-        this->zoom_mod += 0.5f;          // Zoom In
+        zoom_mod += 0.5f;          // Zoom In
     }
 
     if (key == GLFW_KEY_X &&
         action == GLFW_PRESS) {
-        this->zoom_mod -= 0.5f;          // Zoom Out
+        zoom_mod -= 0.5f;          // Zoom Out
     }
-}
-
-void model3D::transform() {
-
 }
 
 int main(void) 
 {
+    model3D myModel("3D/myCube.obj");
     GLFWwindow* window;
 
     /* Initialize the library */
@@ -181,31 +334,10 @@ int main(void)
 
     glfwSetKeyCallback(window, Key_Callback);
 
-    std::fstream vertSrc("Shaders/sample.vert");
-    std::stringstream vertBuff;
-    vertBuff << vertSrc.rdbuf();
-    std::string vertS = vertBuff.str();
-    const char* v = vertS.c_str();
+    createShaderProgram();
+    
 
-    std::fstream fragSrc("Shaders/sample.frag");
-    std::stringstream fragBuff;
-    fragBuff << fragSrc.rdbuf();
-    std::string fragS = fragBuff.str();
-    const char* f = fragS.c_str();
-
-    GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertShader, 1, &v, NULL);
-    glCompileShader(vertShader);
-
-    GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragShader, 1, &f, NULL);
-    glCompileShader(fragShader);
-
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertShader);
-    glAttachShader(shaderProgram, fragShader);
-
-    glLinkProgram(shaderProgram);
+    // ------------------------------------------- //
 
     std::string path = "3D/myCube.obj";
     std::vector<tinyobj::shape_t> shapes;
@@ -234,94 +366,7 @@ int main(void)
         0.f, 0.f
     };
 
-
-
-    GLint objColorLoc = glGetUniformLocation(shaderProgram, "objColor");
-
-    std::vector<GLuint> mesh_indices;
-    for (int i = 0; i < shapes[0].mesh.indices.size(); i++) {
-        mesh_indices.push_back(
-            shapes[0].mesh.indices[i].vertex_index
-            );
-    }
-
-    GLfloat vertices[]{
-        //x    y     z
-        0.5f, 0.5f, 0.f,        // Point 0
-        -0.5f, -0.5f, 0.f,      // Point 1
-        0.5f, -0.5f, 0.f        // Point 2
-    };
-
-    GLfloat indices[]{
-        0, 1, 2
-    };
-
-    GLuint VAO, VBO, EBO, VBO_UV;
-    glGenVertexArrays(1, &VAO);     // Generates 1 VAO and outputs GLuint
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &VBO_UV);
-    glGenBuffers(1, &EBO);
-
-    // Tells OpenGL we're working on this VAO
-    glBindVertexArray(VAO);
-
-    // Assigns VBO to this VAO
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(
-        GL_ARRAY_BUFFER,    // Type of Buffer
-        sizeof(GL_FLOAT) * attributes.vertices.size(),   // Size in bytes
-        &attributes.vertices[0],           // Array itself
-        GL_STATIC_DRAW      // Static (for now, GL_DYNAMIC_ARRAY if moving)
-    );
-
-    glVertexAttribPointer(
-        0,          // 0 == Position
-        3,          // XYZ
-        GL_FLOAT,    // what array it is
-        GL_FALSE,
-        3 * sizeof(GL_FLOAT),
-        (void*)0
-    );
-
-    // Enables Index 0
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(GLuint) * mesh_indices.size(),
-        mesh_indices.data(),
-        GL_STATIC_DRAW
-    );
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_UV);      // Bind the UV buffer
-    glBufferData(GL_ARRAY_BUFFER,
-        sizeof(GLfloat) * (sizeof(UV) / sizeof(UV[0])),     // Float * size of the UV array
-        &UV[0],             // The UV array earlier
-        GL_DYNAMIC_DRAW);
-
-    // Add in how to interpret the array
-    glVertexAttribPointer(
-        2,                      // 2 for UV or tex coords
-        2,                      // UV
-        GL_FLOAT,               // Type of Array
-        GL_FALSE,
-        2 * sizeof(float),      // Every 2 index
-        (void*)0
-    );
-
-    // Enable 2 for our UV / Tex coords
-    glEnableVertexAttribArray(2);
-
-    // Tells OpenGL we're done w/ VBO and VAO
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    
-
     glViewport(0, 0, width, height);
-    //glUniform3f(objColorLoc, 0.5f, 0.1f, 0.1f);
     glm::mat4 projection = glm::perspective(
         glm::radians(60.f), // FOV
         height / width,   // Aspect Ratio
@@ -344,8 +389,8 @@ int main(void)
 
         glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x , y , z + zoom_mod));
         transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z + scale_mod));
-        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod += y_mod), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
-        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod += x_mod), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
+        // transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod += y_mod), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
+        // transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod += x_mod), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
        
         glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -5.0f);    // Top View
 
@@ -390,10 +435,7 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    myModel.~model3D();
 
     glfwTerminate();
     return 0;
