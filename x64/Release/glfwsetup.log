@@ -1,0 +1,18 @@
+﻿  glad.c
+  glfwsetup.cpp
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(107,38): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(107,31): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(234,46): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(234,34): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(277,9): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(279,48): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(279,36): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(317,9): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(319,46): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(319,34): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(361,9): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 1987 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  glfwsetup.vcxproj -> C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\x64\Release\glfwsetup.exe
