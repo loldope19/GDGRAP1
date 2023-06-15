@@ -29,6 +29,7 @@ float theta_xmod = 0, theta_ymod = 0;
 float zoom_mod = 0;
 
 bool firstMouse = true;
+bool spacePressed = false;
 float yaw = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
 float pitch = 0.0f;
 float lastX = 600 / 2.0;
@@ -39,6 +40,18 @@ glm::mat4 identity_matrix = glm::mat4(1.0f);
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -5.0f);
 glm::vec3 center = glm::vec3(0, 0, 5.0f);
 glm::vec3 WorldUp = glm::vec3(0, 1.0f, 0);
+
+void addModel(GLuint shaderProgram, GLuint VAO, std::vector<GLuint> mesh_indices) {
+    glUseProgram(shaderProgram);
+
+    glBindVertexArray(VAO);
+    glDrawElements(
+        GL_TRIANGLES,
+        mesh_indices.size(),
+        GL_UNSIGNED_INT,
+        0
+    );
+}
 
 void processInput(GLFWwindow* window)
 {
@@ -54,11 +67,16 @@ void processInput(GLFWwindow* window)
         cameraPos -= glm::normalize(glm::cross(center, WorldUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(center, WorldUp)) * cameraSpeed;
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-
-    }
     
     cameraPos.y = 0.0f;         // Makes it so that the camera does not fly around
+}
+
+void Key_Callback(GLFWwindow* window,
+    int key,        // Key Code
+    int scancode,
+    int action,
+    int mod) {
+
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -91,8 +109,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     direction.y = sin(glm::radians(pitch));
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    //center = glm::normalize(direction);
-    center = direction;
+    center = glm::normalize(direction);
 }
 
 int main(void) 
@@ -160,6 +177,7 @@ int main(void)
     // Enable Depth Testing
     glEnable(GL_DEPTH_TEST);
 
+    glfwSetKeyCallback(window, Key_Callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -309,7 +327,6 @@ int main(void)
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window);
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -320,7 +337,7 @@ int main(void)
         // Use the texture at 0
         glUniform1i(tex0Address, 0);
 
-        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x + x_mod , y , z + zoom_mod));
+        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x + x_mod, y + y_mod, z));
         transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z + scale_mod));
         transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
         transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
@@ -346,15 +363,8 @@ int main(void)
             glm::value_ptr(projection));     // Pointer to the matrix
 
         // ---------------------------- //
-        glUseProgram(shaderProgram);
-        
-        glBindVertexArray(VAO);
-        glDrawElements(
-            GL_TRIANGLES,
-            mesh_indices.size(),
-            GL_UNSIGNED_INT,
-            0
-        );
+        processInput(window);
+        addModel(shaderProgram, VAO, mesh_indices);
         // ---------------------------- //
         
         /* Swap front and back buffers */
