@@ -28,7 +28,19 @@ float scale_mod = 0;
 float theta_xmod = 0, theta_ymod = 0;
 float zoom_mod = 0;
 
+float ambientStr = 0.1f;
+float specStr = 0.2f;
+float specPhong = 16;
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -5.0f);
+glm::vec3 WorldUp = glm::vec3(0, 1.0f, 0);
+glm::vec3 center = glm::vec3(0, 0.0f, 0);
+
 glm::mat4 identity_matrix = glm::mat4(1.0f);
+glm::vec3 lightPos = glm::vec3(-10, 3, 0);
+glm::vec3 lightColor = glm::vec3(1, 1, 1);
+
+glm::vec3 ambientColor = lightColor;
 
 void Key_Callback(
     GLFWwindow* window,
@@ -358,16 +370,32 @@ int main(void)
         // Use the texture at 0
         glUniform1i(tex0Address, 0);
 
+        GLuint lightAddress = glGetUniformLocation(shaderProgram, "lightPos");
+        glUniform3fv(lightAddress, 1, glm::value_ptr(lightPos));
+
+        GLuint lightColorAddress = glGetUniformLocation(shaderProgram, "lightColor");
+        glUniform3fv(lightColorAddress, 1, glm::value_ptr(lightColor));
+
+        GLuint ambientStrAddress = glGetUniformLocation(shaderProgram, "ambientStr");
+        glUniform1f(ambientStrAddress, ambientStr);
+
+        GLuint ambientColorAddress = glGetUniformLocation(shaderProgram, "ambientColor");
+        glUniform3fv(ambientColorAddress, 1, glm::value_ptr(ambientColor));
+
+        GLuint cameraPosAddress = glGetUniformLocation(shaderProgram, "cameraPos");
+        glUniform3fv(cameraPosAddress, 1, glm::value_ptr(cameraPos));
+
+        GLuint specStrAddress = glGetUniformLocation(shaderProgram, "specStr");
+        glUniform1f(specStrAddress, specStr);
+
+        GLuint specPhongAddress = glGetUniformLocation(shaderProgram, "specPhong");
+        glUniform1f(specStrAddress, specPhong);
+
         glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x , y , z + zoom_mod));
         transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z + scale_mod));
         transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod += y_mod), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
         transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod += 1.0f), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
        
-        glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -5.0f);
-
-        glm::vec3 WorldUp = glm::vec3(0, 1.0f, 0);
-        glm::vec3 center = glm::vec3(0, 0.0f, 0);
-
         glm::mat4 viewMatrix = glm::lookAt(cameraPos, center, WorldUp);
 
         unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
