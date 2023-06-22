@@ -19,7 +19,7 @@ float height = 600.f;
 float width = 600.f;
 
 float x = 0, y = 0, z = 0;
-float scale_x = 1.0f, scale_y = 1.0f, scale_z = 1.0f;
+float scale_x = 0.05f, scale_y = 0.05f, scale_z = 0.05f;
 float axis_x = 1.0f, axis_y = 1.0f, axis_z = 0.0f;
 
 float x_mod = 0;
@@ -127,7 +127,7 @@ int main(void)
 
     // Loads the texture and fills out the variables
     unsigned char* tex_bytes =
-        stbi_load("3d/ayaya.png",   // Texture Path
+        stbi_load("3d/partenza.jpg",   // Texture Path
             &img_width,             // Fills out the width
             &img_height,            // Fills out the height
             &colorChannels,         // Fills out the color channel
@@ -138,20 +138,17 @@ int main(void)
 
     // Generate a reference
     glGenTextures(1, &texture);
-    // Set the current texture were working on to Texture 0
     glActiveTexture(GL_TEXTURE0);
-    // Bind our next tasks to Tex0 to our current reference similar to what we're doing to VBOs
     glBindTexture(GL_TEXTURE_2D, texture);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 
     // Assign the loaded texture to the OpenGL reference
     glTexImage2D(GL_TEXTURE_2D,     
         0,                          // Texture 0
-        GL_RGBA,                    // Target color format of the texture
+        GL_RGB,                    // Target color format of the texture
         img_width,                  // Texture width
         img_height,                 // Texture height
         0,
-        GL_RGBA,                    // Color format of the texture
+        GL_RGB,                    // Color format of the texture
         GL_UNSIGNED_BYTE,
         tex_bytes);                 // Loaded texture in bytes
 
@@ -191,7 +188,7 @@ int main(void)
 
     glLinkProgram(shaderProgram);
 
-    std::string path = "3D/myCube.obj";
+    std::string path = "3D/djSword.obj";
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> material;
     std::string warning, error;
@@ -206,29 +203,6 @@ int main(void)
         &error,
         path.c_str()
     );
-    /*
-    GLfloat UV[]{       // UV Data
-        0.f, 1.f,
-        0.f, 0.f,
-        1.f, 1.f,
-        1.f, 0.f,
-        1.f, 1.f,
-        1.f, 0.f,
-        0.f, 1.f,
-        0.f, 0.f
-    };
-    */
-
-    GLfloat UV[]{       // UV Data
-        0.f, 10.f,
-        0.f, 0.f,
-        10.f, 10.f,
-        10.f, 0.f,
-        10.f, 10.f,
-        10.f, 0.f,
-        0.f, 10.f,
-        0.f, 0.f
-    };
 
 
     GLint objColorLoc = glGetUniformLocation(shaderProgram, "objColor");
@@ -238,6 +212,43 @@ int main(void)
         mesh_indices.push_back(
             shapes[0].mesh.indices[i].vertex_index
             );
+    }
+    
+    std::vector<GLfloat> fullVertexData;
+    for (int i = 0; i < shapes[0].mesh.indices.size(); i++) {
+        tinyobj::index_t vData = shapes[0].mesh.indices[i];
+
+        fullVertexData.push_back(
+            attributes.vertices[(vData.vertex_index * 3)]
+        );
+
+        fullVertexData.push_back(
+            attributes.vertices[(vData.vertex_index * 3) + 1]
+        );
+
+        fullVertexData.push_back(
+            attributes.vertices[(vData.vertex_index * 3) + 2]
+        );
+        
+        fullVertexData.push_back(
+            attributes.normals[(vData.normal_index * 3)]
+        );
+
+        fullVertexData.push_back(
+            attributes.normals[(vData.normal_index * 3) + 1]
+        );
+
+        fullVertexData.push_back(
+            attributes.normals[(vData.normal_index * 3) + 2]
+        );
+        
+        fullVertexData.push_back(
+            attributes.texcoords[(vData.texcoord_index * 2)]
+        );
+
+        fullVertexData.push_back(
+            attributes.texcoords[(vData.texcoord_index * 2) + 1]
+        );
     }
 
     GLfloat vertices[]{
@@ -251,17 +262,50 @@ int main(void)
         0, 1, 2
     };
 
-    GLuint VAO, VBO, EBO, VBO_UV;
+    GLuint VAO, VBO;
     glGenVertexArrays(1, &VAO);     // Generates 1 VAO and outputs GLuint
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &VBO_UV);
-    glGenBuffers(1, &EBO);
 
     // Tells OpenGL we're working on this VAO
     glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER,
+        sizeof(GLfloat) * fullVertexData.size(),
+        fullVertexData.data(),
+        GL_DYNAMIC_DRAW
+    );
+
+    glVertexAttribPointer(
+        0,          // 0 == Position
+        3,          // XYZ
+        GL_FLOAT,    // what array it is
+        GL_FALSE,
+        8 * sizeof(GL_FLOAT),
+        (void*)0
+    );
+
+    GLintptr normalPtr = 3 * sizeof(float);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float),
+        (void*)normalPtr
+    );
+
+    GLintptr uvPtr = 6 * sizeof(float);
+    glVertexAttribPointer(
+        2, 
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float),
+        (void*)uvPtr
+    );
 
     // Assigns VBO to this VAO
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    /*
     glBufferData(
         GL_ARRAY_BUFFER,    // Type of Buffer
         sizeof(GL_FLOAT) * attributes.vertices.size(),   // Size in bytes
@@ -277,33 +321,11 @@ int main(void)
         3 * sizeof(GL_FLOAT),
         (void*)0
     );
+    */
 
     // Enables Index 0
     glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(GLuint) * mesh_indices.size(),
-        mesh_indices.data(),
-        GL_STATIC_DRAW
-    );
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_UV);      // Bind the UV buffer
-    glBufferData(GL_ARRAY_BUFFER,
-        sizeof(GLfloat) * (sizeof(UV) / sizeof(UV[0])),     // Float * size of the UV array
-        &UV[0],             // The UV array earlier
-        GL_DYNAMIC_DRAW);
-
-    // Add in how to interpret the array
-    glVertexAttribPointer(
-        2,                      // 2 for UV or tex coords
-        2,                      // UV
-        GL_FLOAT,               // Type of Array
-        GL_FALSE,
-        2 * sizeof(float),      // Every 2 index
-        (void*)0
-    );
+    glEnableVertexAttribArray(1);
 
     // Enable 2 for our UV / Tex coords
     glEnableVertexAttribArray(2);
@@ -316,7 +338,6 @@ int main(void)
     
 
     glViewport(0, 0, width, height);
-    //glUniform3f(objColorLoc, 0.5f, 0.1f, 0.1f);
     glm::mat4 projection = glm::perspective(
         glm::radians(60.f), // FOV
         height / width,   // Aspect Ratio
@@ -340,12 +361,12 @@ int main(void)
         glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x , y , z + zoom_mod));
         transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z + scale_mod));
         transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod += y_mod), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
-        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod += x_mod), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
+        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod += 1.0f), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
        
-        glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -5.0f);    // Top View
+        glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -5.0f);
 
         glm::vec3 WorldUp = glm::vec3(0, 1.0f, 0);
-        glm::vec3 center = glm::vec3(0, 1.0f, 0);
+        glm::vec3 center = glm::vec3(0, 0.0f, 0);
 
         glm::mat4 viewMatrix = glm::lookAt(cameraPos, center, WorldUp);
 
@@ -366,98 +387,12 @@ int main(void)
             1,                              // How many matrices to assign
             GL_FALSE,                       // Transpose?
             glm::value_ptr(projection));     // Pointer to the matrix
-        /*
-        glUseProgram(shaderProgram);
-
-        glBindVertexArray(VAO);
-        glDrawElements(
-            GL_TRIANGLES,
-            mesh_indices.size(),
-            GL_UNSIGNED_INT,
-            0
-        );
         
-        glViewport(300, 300, width / 2, height / 2);
-        glUniform3f(objColorLoc, 0.0f, 1.0f, 0.0f);
-        glm::mat4 projection2 = glm::perspective(
-            glm::radians(60.f), // FOV
-            height / width,   // Aspect Ratio
-            0.1f,   // Near
-            50.0f   // Far
-        );
-
-        glm::vec3 cameraPos2 = glm::vec3(-5.0f, 0, 0.0f); // Front View
-        glm::mat4 viewMatrix2 = glm::lookAt(cameraPos2, center, WorldUp);
-        unsigned int transformLoc2 = glGetUniformLocation(shaderProgram, "transform");
-        glUniformMatrix4fv(transformLoc2,                // Address of the transform variable
-            1,                                          // How many matrices to assign
-            GL_FALSE,                                   // Transpose?
-            glm::value_ptr(transformation_matrix));     // Pointer to the matrix
-
-        unsigned int viewLoc2 = glGetUniformLocation(shaderProgram, "view");
-        glUniformMatrix4fv(viewLoc2,
-            1,
-            GL_FALSE,
-            glm::value_ptr(viewMatrix2));
-
-        unsigned int projLoc2 = glGetUniformLocation(shaderProgram, "projection");
-        glUniformMatrix4fv(projLoc2,    // Address of the transform variable
-            1,                              // How many matrices to assign
-            GL_FALSE,                       // Transpose?
-            glm::value_ptr(projection2));     // Pointer to the matrix
-
-        glUseProgram(shaderProgram);
-
-        glBindVertexArray(VAO);
-        glDrawElements(
-            GL_TRIANGLES,
-            mesh_indices.size(),
-            GL_UNSIGNED_INT,
-            0
-        );
-
-        glViewport(150, 0, width / 2, height / 2);
-        glUniform3f(objColorLoc, 0.0f, 0.0f, 1.0f);
-        glm::mat4 projection3 = glm::perspective(
-            glm::radians(60.f), // FOV
-            height / width,   // Aspect Ratio
-            0.1f,   // Near
-            50.0f   // Far
-        );
-
-        glm::vec3 cameraPos3 = glm::vec3(0, 0, -5.0f);     // Side View
-        glm::mat4 viewMatrix3 = glm::lookAt(cameraPos3, center, WorldUp);
-
-        unsigned int transformLoc3 = glGetUniformLocation(shaderProgram, "transform");
-        glUniformMatrix4fv(transformLoc3,                // Address of the transform variable
-            1,                                          // How many matrices to assign
-            GL_FALSE,                                   // Transpose?
-            glm::value_ptr(transformation_matrix));     // Pointer to the matrix
-
-        unsigned int viewLoc3 = glGetUniformLocation(shaderProgram, "view");
-        glUniformMatrix4fv(viewLoc3,
-            1,
-            GL_FALSE,
-            glm::value_ptr(viewMatrix3));
-
-        unsigned int projLoc3 = glGetUniformLocation(shaderProgram, "projection");
-        glUniformMatrix4fv(projLoc3,    // Address of the transform variable
-            1,                              // How many matrices to assign
-            GL_FALSE,                       // Transpose?
-            glm::value_ptr(projection3));     // Pointer to the matrix
-
-        */
-
         // ---------------------------- //
         glUseProgram(shaderProgram);
         
         glBindVertexArray(VAO);
-        glDrawElements(
-            GL_TRIANGLES,
-            mesh_indices.size(),
-            GL_UNSIGNED_INT,
-            0
-        );
+        glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
         // ---------------------------- //
         
         /* Swap front and back buffers */
@@ -469,7 +404,6 @@ int main(void)
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
 
     glfwTerminate();
     return 0;
