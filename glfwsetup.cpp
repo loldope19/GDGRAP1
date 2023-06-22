@@ -29,8 +29,8 @@ float theta_xmod = 0, theta_ymod = 0;
 float zoom_mod = 0;
 
 float ambientStr = 0.1f;
-float specStr = 0.2f;
-float specPhong = 16;
+float specStr = 0.5f;
+float specPhong = 0.5f;
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -5.0f);
 glm::vec3 WorldUp = glm::vec3(0, 1.0f, 0);
