@@ -1,7 +1,2 @@
 ﻿  glfwsetup.cpp
-D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(122,38): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(122,31): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(352,29): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(352,22): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(423,64): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-  glfwsetup.vcxproj -> D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\x64\Debug\glfwsetup.exe
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp : fatal  error C1041: cannot open program database 'C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\x64\Debug\vc143.pdb'; if multiple CL.EXE write to the same .PDB file, please use /FS

@@ -1,3 +1,16 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * 
+ * Quiz 2 - #7 (Sydrenz Cao | GDGRAP1)               * 
+ * Completed Items:                                  * 
+ * - Center it with the full model visible           * 
+ * - Constantly rotate it along the Y axis           * 
+ * - Use perspective projection with FOV 90          * 
+ * - Use a Direction light with direction (-1,-1,0)  * 
+ *   and the color green for all components          * 
+ *                                                   * 
+ * Incomplete Items:                                 *
+ * - Apply any texture / picture on the model        *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <math.h>
@@ -18,7 +31,7 @@
 float height = 600.f;
 float width = 600.f;
 
-float x = 0, y = 0, z = 0;
+float x = 0, y = 0, z = 0;      // Centered Model (?) [1]
 float scale_x = 0.05f, scale_y = 0.05f, scale_z = 0.05f;
 float axis_x = 1.0f, axis_y = 1.0f, axis_z = 0.0f;
 
@@ -32,13 +45,13 @@ float ambientStr = 0.1f;
 float specStr = 0.5f;
 float specPhong = 0.5f;
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -5.0f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -6.0f);
 glm::vec3 WorldUp = glm::vec3(0, 1.0f, 0);
 glm::vec3 center = glm::vec3(0, 0.0f, 0);
 
 glm::mat4 identity_matrix = glm::mat4(1.0f);
-glm::vec3 lightPos = glm::vec3(-10, 3, 0);
-glm::vec3 lightColor = glm::vec3(1, 1, 1);
+glm::vec3 lightPos = glm::vec3(-1, -1, 0);
+glm::vec3 lightColor = glm::vec3(0, 1, 0);      // Color Green [5]
 
 glm::vec3 ambientColor = lightColor;
 
@@ -110,7 +123,7 @@ void Key_Callback(
     }
 }
 
-int main(void) 
+int main(void)
 {
     GLFWwindow* window;
 
@@ -139,7 +152,7 @@ int main(void)
 
     // Loads the texture and fills out the variables
     unsigned char* tex_bytes =
-        stbi_load("3d/partenza.jpg",   // Texture Path
+        stbi_load("3d/ayaya.png",   // Texture Path
             &img_width,             // Fills out the width
             &img_height,            // Fills out the height
             &colorChannels,         // Fills out the color channel
@@ -154,13 +167,13 @@ int main(void)
     glBindTexture(GL_TEXTURE_2D, texture);
 
     // Assign the loaded texture to the OpenGL reference
-    glTexImage2D(GL_TEXTURE_2D,     
+    glTexImage2D(GL_TEXTURE_2D,
         0,                          // Texture 0
-        GL_RGB,                    // Target color format of the texture
+        GL_RGBA,                    // Target color format of the texture
         img_width,                  // Texture width
         img_height,                 // Texture height
         0,
-        GL_RGB,                    // Color format of the texture
+        GL_RGBA,                    // Color format of the texture
         GL_UNSIGNED_BYTE,
         tex_bytes);                 // Loaded texture in bytes
 
@@ -216,6 +229,16 @@ int main(void)
         path.c_str()
     );
 
+    GLfloat UV[]{       // UV Data
+        0.f, 10.f,
+        0.f, 0.f,
+        10.f, 10.f,
+        10.f, 0.f,
+        10.f, 10.f,
+        10.f, 0.f,
+        0.f, 10.f,
+        0.f, 0.f
+    };
 
     GLint objColorLoc = glGetUniformLocation(shaderProgram, "objColor");
 
@@ -223,9 +246,9 @@ int main(void)
     for (int i = 0; i < shapes[0].mesh.indices.size(); i++) {
         mesh_indices.push_back(
             shapes[0].mesh.indices[i].vertex_index
-            );
+        );
     }
-    
+
     std::vector<GLfloat> fullVertexData;
     for (int i = 0; i < shapes[0].mesh.indices.size(); i++) {
         tinyobj::index_t vData = shapes[0].mesh.indices[i];
@@ -241,7 +264,7 @@ int main(void)
         fullVertexData.push_back(
             attributes.vertices[(vData.vertex_index * 3) + 2]
         );
-        
+
         fullVertexData.push_back(
             attributes.normals[(vData.normal_index * 3)]
         );
@@ -252,14 +275,6 @@ int main(void)
 
         fullVertexData.push_back(
             attributes.normals[(vData.normal_index * 3) + 2]
-        );
-        
-        fullVertexData.push_back(
-            attributes.texcoords[(vData.texcoord_index * 2)]
-        );
-
-        fullVertexData.push_back(
-            attributes.texcoords[(vData.texcoord_index * 2) + 1]
         );
     }
 
@@ -274,9 +289,10 @@ int main(void)
         0, 1, 2
     };
 
-    GLuint VAO, VBO;
+    GLuint VAO, VBO, VBO_UV;
     glGenVertexArrays(1, &VAO);     // Generates 1 VAO and outputs GLuint
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &VBO_UV);
 
     // Tells OpenGL we're working on this VAO
     glBindVertexArray(VAO);
@@ -292,7 +308,7 @@ int main(void)
         3,          // XYZ
         GL_FLOAT,    // what array it is
         GL_FALSE,
-        8 * sizeof(GL_FLOAT),
+        6 * sizeof(GL_FLOAT),
         (void*)0
     );
 
@@ -302,42 +318,28 @@ int main(void)
         3,
         GL_FLOAT,
         GL_FALSE,
-        8 * sizeof(float),
+        6 * sizeof(float),
         (void*)normalPtr
     );
-
-    GLintptr uvPtr = 6 * sizeof(float);
-    glVertexAttribPointer(
-        2, 
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        8 * sizeof(float),
-        (void*)uvPtr
-    );
-
-    // Assigns VBO to this VAO
-    /*
-    glBufferData(
-        GL_ARRAY_BUFFER,    // Type of Buffer
-        sizeof(GL_FLOAT) * attributes.vertices.size(),   // Size in bytes
-        &attributes.vertices[0],           // Array itself
-        GL_STATIC_DRAW      // Static (for now, GL_DYNAMIC_ARRAY if moving)
-    );
-
-    glVertexAttribPointer(
-        0,          // 0 == Position
-        3,          // XYZ
-        GL_FLOAT,    // what array it is
-        GL_FALSE,
-        3 * sizeof(GL_FLOAT),
-        (void*)0
-    );
-    */
 
     // Enables Index 0
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_UV);
+    glBufferData(GL_ARRAY_BUFFER,
+        (sizeof(UV) / sizeof(UV[0])),
+        &UV[0],
+        GL_STATIC_DRAW);
+
+    glVertexAttribPointer(
+        2, 
+        2, 
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float), 
+        (void*)0
+    );
 
     // Enable 2 for our UV / Tex coords
     glEnableVertexAttribArray(2);
@@ -347,14 +349,12 @@ int main(void)
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    
-
     glViewport(0, 0, width, height);
     glm::mat4 projection = glm::perspective(
-        glm::radians(60.f), // FOV
-        height / width,   // Aspect Ratio
-        0.1f,   // Near
-        50.0f   // Far
+        glm::radians(90.f), // FOV 90 [4]
+        height / width, 
+        0.1f, 
+        50.0f 
     );
 
     /* Loop until the user closes the window */
@@ -391,11 +391,12 @@ int main(void)
         GLuint specPhongAddress = glGetUniformLocation(shaderProgram, "specPhong");
         glUniform1f(specStrAddress, specPhong);
 
-        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x , y , z + zoom_mod));
+        glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x, y, z + zoom_mod));
         transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z + scale_mod));
         transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod += y_mod), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
-        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod += 1.0f), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
-       
+        // Y-Axis Rotation [3]
+        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod += 0.2f), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
+
         glm::mat4 viewMatrix = glm::lookAt(cameraPos, center, WorldUp);
 
         unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
@@ -415,14 +416,14 @@ int main(void)
             1,                              // How many matrices to assign
             GL_FALSE,                       // Transpose?
             glm::value_ptr(projection));     // Pointer to the matrix
-        
+
         // ---------------------------- //
         glUseProgram(shaderProgram);
-        
+
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
+        glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 6);
         // ---------------------------- //
-        
+
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
