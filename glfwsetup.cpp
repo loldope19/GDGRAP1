@@ -41,17 +41,17 @@ float scale_mod = 0;
 float theta_xmod = 0, theta_ymod = 0;
 float zoom_mod = 0;
 
-float ambientStr = 0.1f;
-float specStr = 0.5f;
-float specPhong = 0.5f;
+float ambientStr = 0.3f;
+float specStr = 0.6f;
+float specPhong = 0.6f;
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -6.0f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 6.0f);
 glm::vec3 WorldUp = glm::vec3(0, 1.0f, 0);
 glm::vec3 center = glm::vec3(0, 0.0f, 0);
 
 glm::mat4 identity_matrix = glm::mat4(1.0f);
-glm::vec3 lightPos = glm::vec3(-1, -1, 0);
-glm::vec3 lightColor = glm::vec3(1, 1, 1);      // Color Green [5]
+glm::vec3 lightPos = glm::vec3(0, 3.0f, 0);
+glm::vec3 lightColor = glm::vec3(1, 1, 1);
 
 glm::vec3 ambientColor = lightColor;
 
@@ -127,6 +127,8 @@ int main(void)
 {
     GLFWwindow* window;
 
+    scale_x = scale_y = scale_z = 3.0f;
+
     /* Initialize the library */
     if (!glfwInit())
         return -1;
@@ -147,16 +149,29 @@ int main(void)
         img_height,     // Texture Height
         colorChannels;  // No. of Color Channels
 
+    int img_width2, img_height2, colorChannel2;
+
     // Fix the flipped texture
     stbi_set_flip_vertically_on_load(true);
 
     // Loads the texture and fills out the variables
     unsigned char* tex_bytes =
-        stbi_load("3d/ayaya.png",   // Texture Path
+        stbi_load("3D/brickwall.jpg",   // Texture Path
             &img_width,             // Fills out the width
             &img_height,            // Fills out the height
             &colorChannels,         // Fills out the color channel
             0);
+    
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* normal_bytes =
+        stbi_load("3D/brickwall_normal.jpg",
+            &img_width2,
+            &img_height2,
+            &colorChannel2,
+            0);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // OpenGL reference to the texture
     GLuint texture;
@@ -169,24 +184,51 @@ int main(void)
     // Assign the loaded texture to the OpenGL reference
     glTexImage2D(GL_TEXTURE_2D,
         0,                          // Texture 0
-        GL_RGBA,                    // Target color format of the texture
+        GL_RGB,                    // Target color format of the texture
         img_width,                  // Texture width
         img_height,                 // Texture height
         0,
-        GL_RGBA,                    // Color format of the texture
+        GL_RGB,                    // Color format of the texture
         GL_UNSIGNED_BYTE,
         tex_bytes);                 // Loaded texture in bytes
-
+    
     // Generate the mipmaps to the current textures
     glGenerateMipmap(GL_TEXTURE_2D);
     // Free up the loaded bytes
     stbi_image_free(tex_bytes);
 
+    // -------- NORMAL TEXTURE -------- //
+    GLuint norm_tex;
+    glGenTextures(1, &norm_tex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, norm_tex);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGB,
+        img_width2,
+        img_height2,
+        0,
+        GL_RGB,
+        GL_UNSIGNED_BYTE,
+        normal_bytes
+    );
+
+    // ------------------------------- //
+    
+    // Generate the mipmaps to the current textures
+    glGenerateMipmap(GL_TEXTURE_2D);
+    // Free up the loaded bytes
+    stbi_image_free(normal_bytes);
+
     // Enable Depth Testing
     glEnable(GL_DEPTH_TEST);
 
     glfwSetKeyCallback(window, Key_Callback);
-
 
 
     std::fstream vertSrc("Shaders/sample.vert");
@@ -215,6 +257,8 @@ int main(void)
 
     glLinkProgram(shaderProgram);
 
+    // --------- SKYBOX SHADERS --------- //
+
     std::fstream sky_vertSrc("Shaders/skybox.vert");
     std::stringstream sky_vertBuff;
     sky_vertBuff << sky_vertSrc.rdbuf();
@@ -240,6 +284,8 @@ int main(void)
     glAttachShader(skyboxProgram, sky_fragShader);
 
     glLinkProgram(skyboxProgram);
+
+    // ---------------------------------- //
 
     std::string path = "3D/plane.obj";
     std::vector<tinyobj::shape_t> shapes;
@@ -321,6 +367,7 @@ int main(void)
 
     unsigned int skyboxTex;
     glGenTextures(1, &skyboxTex);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTex);
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -350,6 +397,65 @@ int main(void)
         mesh_indices.push_back(
             shapes[0].mesh.indices[i].vertex_index
         );
+    }
+
+    std::vector<glm::vec3> tangents;
+    std::vector<glm::vec3> bitangents;
+    for (int i = 0; i < shapes[0].mesh.indices.size(); i += 3) {
+        tinyobj::index_t vData1 = shapes[0].mesh.indices[i];
+        tinyobj::index_t vData2 = shapes[0].mesh.indices[i + 1];
+        tinyobj::index_t vData3 = shapes[0].mesh.indices[i + 2];
+
+        glm::vec3 v1 = glm::vec3(
+            attributes.vertices[vData1.vertex_index * 3],
+            attributes.vertices[(vData1.vertex_index * 3) + 1],
+            attributes.vertices[(vData1.vertex_index * 3) + 2]
+        );
+
+        glm::vec3 v2 = glm::vec3(
+            attributes.vertices[vData2.vertex_index * 3],
+            attributes.vertices[(vData2.vertex_index * 3) + 1],
+            attributes.vertices[(vData2.vertex_index * 3) + 2]
+        );
+
+        glm::vec3 v3 = glm::vec3(
+            attributes.vertices[vData3.vertex_index * 3],
+            attributes.vertices[(vData3.vertex_index * 3) + 1],
+            attributes.vertices[(vData3.vertex_index * 3) + 2]
+        );
+
+        glm::vec2 uv1 = glm::vec2(
+            attributes.texcoords[(vData1.texcoord_index * 2)],
+            attributes.texcoords[(vData1.texcoord_index * 2) + 1]
+        );
+
+        glm::vec2 uv2 = glm::vec2(
+            attributes.texcoords[(vData2.texcoord_index * 2)],
+            attributes.texcoords[(vData2.texcoord_index * 2) + 1]
+        );
+
+        glm::vec2 uv3 = glm::vec2(
+            attributes.texcoords[(vData3.texcoord_index * 2)],
+            attributes.texcoords[(vData3.texcoord_index * 2) + 1]
+        );
+
+        glm::vec3 deltaPos1 = v2 - v1;
+        glm::vec3 deltaPos2 = v3 - v1;
+
+        glm::vec2 deltaUV1 = uv2 - uv1;
+        glm::vec2 deltaUV2 = uv3 - uv1;
+
+        float r = 1.0f / ((deltaUV1.x * deltaUV2.y) - (deltaUV1.y * deltaUV2.x));
+
+        glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+        glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+        tangents.push_back(tangent);
+        tangents.push_back(tangent);
+        tangents.push_back(tangent);
+
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
+        bitangents.push_back(bitangent);
     }
 
     std::vector<GLfloat> fullVertexData;
@@ -386,6 +492,30 @@ int main(void)
 
         fullVertexData.push_back(
             attributes.texcoords[(vData.texcoord_index * 2) + 1]
+        );
+
+        fullVertexData.push_back(
+            tangents[i].x
+        );
+
+        fullVertexData.push_back(
+            tangents[i].y
+        );
+
+        fullVertexData.push_back(
+            tangents[i].z
+        );
+
+        fullVertexData.push_back(
+            bitangents[i].x
+        );
+
+        fullVertexData.push_back(
+            bitangents[i].y
+        );
+
+        fullVertexData.push_back(
+            bitangents[i].z
         );
     }
 
@@ -434,7 +564,7 @@ int main(void)
         3,          // XYZ
         GL_FLOAT,    // what array it is
         GL_FALSE,
-        8 * sizeof(GL_FLOAT),
+        14 * sizeof(GL_FLOAT),
         (void*)0
     );
 
@@ -444,7 +574,7 @@ int main(void)
         3,
         GL_FLOAT,
         GL_FALSE,
-        8 * sizeof(float),
+        14 * sizeof(float),
         (void*)normalPtr
     );
 
@@ -454,16 +584,36 @@ int main(void)
         2,
         GL_FLOAT,
         GL_FALSE,
-        8 * sizeof(float),
+        14 * sizeof(float),
         (void*)uvPtr
     );
 
-    // Enables Index 0
+    GLintptr tangentPtr = 8 * sizeof(float);
+    GLintptr bitangentPtr = 11 * sizeof(float);
+
+    glVertexAttribPointer(
+        3,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        14 * sizeof(float),
+        (void*)tangentPtr
+    );
+
+    glVertexAttribPointer(
+        4,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        14 * sizeof(float),
+        (void*)bitangentPtr
+    );
+
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
-
-    // Enable 2 for our UV / Tex coords
     glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
+    glEnableVertexAttribArray(4);
 
     // Tells OpenGL we're done w/ VBO and VAO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -486,9 +636,9 @@ int main(void)
 
         glm::mat4 transformation_matrix = glm::translate(identity_matrix, glm::vec3(x, y, z + zoom_mod));
         transformation_matrix = glm::scale(transformation_matrix, glm::vec3(scale_x + scale_mod, scale_y + scale_mod, scale_z + scale_mod));
-        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod += y_mod), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
+        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_xmod -= 0.2f), glm::normalize(glm::vec3(axis_x, 0, axis_z)));     // Rotation w/ Normalized X-Axis
         // Y-Axis Rotation [3]
-        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod += 0.2f), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
+        transformation_matrix = glm::rotate(transformation_matrix, glm::radians(theta_ymod), glm::normalize(glm::vec3(0, axis_y, axis_z)));     // Rotation w/ Normalized Y-Axis
 
         glm::mat4 viewMatrix = glm::lookAt(cameraPos, center, WorldUp);
         
@@ -514,14 +664,19 @@ int main(void)
         glDepthFunc(GL_LESS);
 
         // ---------------------------- //
-        
         glUseProgram(shaderProgram);
+        glActiveTexture(GL_TEXTURE0);
         // Get the location of tex 0 in the fragment shader
         GLuint tex0Address = glGetUniformLocation(shaderProgram, "tex0");
         // Tell OpenGL to use the texture
         glBindTexture(GL_TEXTURE_2D, texture);
         // Use the texture at 0
         glUniform1i(tex0Address, 0);
+        
+        glActiveTexture(GL_TEXTURE1);
+        GLuint tex1Loc = glGetUniformLocation(shaderProgram, "norm_tex");
+        glBindTexture(GL_TEXTURE_2D, norm_tex);
+        glUniform1i(tex1Loc, 1);
 
         GLuint lightAddress = glGetUniformLocation(shaderProgram, "lightPos");
         glUniform3fv(lightAddress, 1, glm::value_ptr(lightPos));
@@ -564,7 +719,7 @@ int main(void)
 
         // ---------------------------- //
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 6);
+        glDrawArrays(GL_TRIANGLES, 0, fullVertexData.size() / 8);
         // ---------------------------- //
 
         /* Swap front and back buffers */
