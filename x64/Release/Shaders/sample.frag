@@ -22,6 +22,12 @@ out vec4 FragColor; // Color pixel
 
 void main(){
 
+	vec4 pixelColor = texture(tex0, texCoord);
+	// Alpha Cutoff Shader
+	if (pixelColor.a < 0.1) {
+		discard;
+	}
+
 	// FragColor = vec4(objColor, 1.0f);
 
 	// Assigns the texture color using the function

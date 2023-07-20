@@ -1,12 +1,11 @@
-﻿  glad.c
-  glfwsetup.cpp
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(135,38): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(135,31): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(352,29): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(352,22): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(424,64): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+﻿  glfwsetup.cpp
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(135,38): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(135,31): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(379,29): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(379,22): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(451,64): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
   Generating code
-  Previous IPDB not found, fall back to full compilation.
+  Previous IPDB and IOBJ mismatch, fall back to full compilation.
   All 2140 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
-  glfwsetup.vcxproj -> C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\x64\Release\glfwsetup.exe
+  glfwsetup.vcxproj -> D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\x64\Release\glfwsetup.exe

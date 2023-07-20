@@ -17,18 +17,24 @@ in vec2 texCoord;
 in vec3 normCoord;
 in vec3 fragPos;
 
-// uniform vec3 objColor; // Object Color
+uniform vec3 objColor; // Object Color
 out vec4 FragColor; // Color pixel
 
 void main(){
 
-	//FragColor = vec4(objColor, 1.0f);
+	vec4 pixelColor = texture(tex0, texCoord);
+	// Alpha Cutoff Shader
+	if (pixelColor.a < 0.1) {
+		discard;
+	}
+
+	// FragColor = vec4(objColor, 1.0f);
 
 	// Assigns the texture color using the function
-	// FragColor = texture(tex0, texCoord);
+	FragColor = texture(tex0, texCoord);
 
 	vec3 normal = normalize(normCoord);
-	vec3 lightDir = normalize(-lightPos);
+	vec3 lightDir = normalize(-lightPos);		// Main Implementation of Direction Light (basically normalizing the (negative) light Position)
 
 	// Gets the distance between the light and the position of the fragment
 	// float fDistance = length(lightPos - fragPos);
