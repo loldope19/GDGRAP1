@@ -45,14 +45,14 @@ void main(){
 	vec3 lightDir = normalize(lightPos - fragPos);
 
 	// Gets the distance between the light and the position of the fragment
-	float fDistance = length(lightPos - fragPos);
+	//float fDistance = length(lightPos - fragPos);
 	// Intensity of the light with regards to the distance of the fragment to the light source
 	// Equation is 1 / Distance^2
-	float fIntensity = 1 / (fDistance * fDistance);
+	//float fIntensity = 1 / (fDistance * fDistance);
 
 	float diff = max(dot(normal, lightDir), 0.0);
-	vec3 diffuse = diff * lightColor * fIntensity;		// Light intensity factored on the diffuse component of the object
-	//vec3 diffuse = diff * lightColor;
+	// vec3 diffuse = diff * lightColor * fIntensity;		// Light intensity factored on the diffuse component of the object
+	vec3 diffuse = diff * lightColor;
 
 	vec3 ambientCol = ambientColor * ambientStr;
 
@@ -60,8 +60,8 @@ void main(){
 	vec3 reflectDir = reflect(-lightDir, normal);
 
 	float spec = pow(max(dot(reflectDir, viewDir), 0.1), specPhong);
-	vec3 specColor = spec * specStr * lightColor * fIntensity;		// Light intensity factored on the specular component of the object, 
-	//vec3 specColor = spec * specStr * lightColor;
+	// vec3 specColor = spec * specStr * lightColor * fIntensity;		// Light intensity factored on the specular component of the object, 
+	vec3 specColor = spec * specStr * lightColor;
 
 	FragColor = vec4(specColor + ambientCol + diffuse, 1.0) * texture(tex0, texCoord);
 }

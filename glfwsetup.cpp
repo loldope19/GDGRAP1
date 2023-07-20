@@ -50,7 +50,7 @@ glm::vec3 WorldUp = glm::vec3(0, 1.0f, 0);
 glm::vec3 center = glm::vec3(0, 0.0f, 0);
 
 glm::mat4 identity_matrix = glm::mat4(1.0f);
-glm::vec3 lightPos = glm::vec3(0, 3.0f, 0);
+glm::vec3 lightPos = glm::vec3(2.f, 2.0f, 0);
 glm::vec3 lightColor = glm::vec3(1, 1, 1);
 
 glm::vec3 ambientColor = lightColor;
@@ -127,7 +127,7 @@ int main(void)
 {
     GLFWwindow* window;
 
-    scale_x = scale_y = scale_z = 3.0f;
+    scale_x = scale_y = scale_z = 2.0f;
 
     /* Initialize the library */
     if (!glfwInit())
