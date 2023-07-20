@@ -32,7 +32,7 @@ float height = 600.f;
 float width = 600.f;
 
 float x = 0, y = 0, z = 0;      // Centered Model (?) [1]
-float scale_x = 0.05f, scale_y = 0.05f, scale_z = 0.05f;
+float scale_x = 1.f, scale_y = 1.f, scale_z = 1.f;
 float axis_x = 1.0f, axis_y = 1.0f, axis_z = 0.0f;
 
 float x_mod = 0;
@@ -51,7 +51,7 @@ glm::vec3 center = glm::vec3(0, 0.0f, 0);
 
 glm::mat4 identity_matrix = glm::mat4(1.0f);
 glm::vec3 lightPos = glm::vec3(-1, -1, 0);
-glm::vec3 lightColor = glm::vec3(0, 1, 0);      // Color Green [5]
+glm::vec3 lightColor = glm::vec3(1, 1, 1);      // Color Green [5]
 
 glm::vec3 ambientColor = lightColor;
 
@@ -213,7 +213,7 @@ int main(void)
 
     glLinkProgram(shaderProgram);
 
-    std::string path = "3D/djSword.obj";
+    std::string path = "3D/plane.obj";
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> material;
     std::string warning, error;
@@ -276,6 +276,14 @@ int main(void)
         fullVertexData.push_back(
             attributes.normals[(vData.normal_index * 3) + 2]
         );
+
+        fullVertexData.push_back(
+            attributes.texcoords[(vData.texcoord_index * 2)]
+        );
+
+        fullVertexData.push_back(
+            attributes.texcoords[(vData.texcoord_index * 2) + 1]
+        );
     }
 
     GLfloat vertices[]{
@@ -308,7 +316,7 @@ int main(void)
         3,          // XYZ
         GL_FLOAT,    // what array it is
         GL_FALSE,
-        6 * sizeof(GL_FLOAT),
+        8 * sizeof(GL_FLOAT),
         (void*)0
     );
 
@@ -318,28 +326,23 @@ int main(void)
         3,
         GL_FLOAT,
         GL_FALSE,
-        6 * sizeof(float),
+        8 * sizeof(float),
         (void*)normalPtr
+    );
+
+    GLintptr uvPtr = 6 * sizeof(float);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        8 * sizeof(float),
+        (void*)uvPtr
     );
 
     // Enables Index 0
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_UV);
-    glBufferData(GL_ARRAY_BUFFER,
-        (sizeof(UV) / sizeof(UV[0])),
-        &UV[0],
-        GL_STATIC_DRAW);
-
-    glVertexAttribPointer(
-        2, 
-        2, 
-        GL_FLOAT,
-        GL_FALSE,
-        8 * sizeof(float), 
-        (void*)0
-    );
 
     // Enable 2 for our UV / Tex coords
     glEnableVertexAttribArray(2);
