@@ -1,7 +1,8 @@
 ﻿  glfwsetup.cpp
 D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(135,38): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
 D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(135,31): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(355,29): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(355,22): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(427,64): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(473,29): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(473,22): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\glfwsetup.cpp(569,64): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
   glfwsetup.vcxproj -> D:\[GDGRAP1] S.A.Cao\repos\GDGRAP1\x64\Debug\glfwsetup.exe
