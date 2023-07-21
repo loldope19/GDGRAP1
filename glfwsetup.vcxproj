@@ -133,10 +133,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="glfwsetup.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="OrthographicCam.cpp" />
+    <ClCompile Include="PerspectiveCam.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="OrthographicCam.h" />
+    <ClInclude Include="PerspectiveCam.h" />
     <ClInclude Include="tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>
