@@ -1,13 +1,15 @@
 ﻿  glfwsetup.cpp
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(62,5): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(99,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(100,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(104,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(105,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(106,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(107,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(124,38): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(124,31): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(221,29): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(221,22): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(73,5): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(110,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(111,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(115,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(116,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(117,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(118,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(135,38): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(135,31): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(616,29): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(616,22): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\glfwsetup.cpp(710,69): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
   glfwsetup.vcxproj -> C:\Users\syd\OneDrive\Documents\GitHub\GDGRAP1\x64\Debug\glfwsetup.exe
